@@ -16,8 +16,6 @@
         username: ""
       , password: ""
       , logging: false
-      , key: ""
-      , secret: ""
       };
 
   !function(settings) {
@@ -25,8 +23,6 @@
     var username = settings.username
       , password = settings.password
       , logging = settings.logging 
-      , apikey = settings.key
-      , apisecret = settings.secret
       , lastPlaying
       , lastScrobbled
       , lastPosition
@@ -271,294 +267,294 @@
        */
 
       function LastFM(options) {
-      	/* Set default values for required options. */
-      	var apiKey    = options.apiKey    || '';
-      	var apiSecret = options.apiSecret || '';
-      	var apiUrl    = options.apiUrl    || 'http://ws.audioscrobbler.com/2.0/';
-      	var cache     = options.cache     || undefined;
+        /* Set default values for required options. */
+        var apiKey    = options.apiKey    || '';
+        var apiSecret = options.apiSecret || '';
+        var apiUrl    = options.apiUrl    || 'http://ws.audioscrobbler.com/2.0/';
+        var cache     = options.cache     || undefined;
 
-      	/* Set API key. */
-      	this.setApiKey = function(_apiKey){
-      		apiKey = _apiKey;
-      	};
+        /* Set API key. */
+        this.setApiKey = function(_apiKey){
+          apiKey = _apiKey;
+        };
 
-      	/* Set API key. */
-      	this.setApiSecret = function(_apiSecret){
-      		apiSecret = _apiSecret;
-      	};
+        /* Set API key. */
+        this.setApiSecret = function(_apiSecret){
+          apiSecret = _apiSecret;
+        };
 
-      	/* Set API URL. */
-      	this.setApiUrl = function(_apiUrl){
-      		apiUrl = _apiUrl;
-      	};
+        /* Set API URL. */
+        this.setApiUrl = function(_apiUrl){
+          apiUrl = _apiUrl;
+        };
 
-      	/* Set cache. */
-      	this.setCache = function(_cache){
-      		cache = _cache;
-      	};
+        /* Set cache. */
+        this.setCache = function(_cache){
+          cache = _cache;
+        };
 
-      	/* Set the JSONP callback identifier counter. This is used to ensure the callbacks are unique */
-      	var jsonpCounter = 0;
+        /* Set the JSONP callback identifier counter. This is used to ensure the callbacks are unique */
+        var jsonpCounter = 0;
 
-      	/* Internal call (POST, GET). */
-      	var internalCall = function(params, callbacks, requestMethod){
-      		/* Cross-domain POST request (doesn't return any data, always successful). */
-      		if(requestMethod == 'POST'){
-      			/* Create iframe element to post data. */
-      			var html   = document.getElementsByTagName('html')[0];
-      			var iframe = document.createElement('iframe');
-      			var doc;
+        /* Internal call (POST, GET). */
+        var internalCall = function(params, callbacks, requestMethod){
+          /* Cross-domain POST request (doesn't return any data, always successful). */
+          if(requestMethod == 'POST'){
+            /* Create iframe element to post data. */
+            var html   = document.getElementsByTagName('html')[0];
+            var iframe = document.createElement('iframe');
+            var doc;
 
-      			/* Set iframe attributes. */
-      			iframe.width        = 1;
-      			iframe.height       = 1;
-      			iframe.style.border = 'none';
-      			iframe.onload       = function(){
-      				/* Remove iframe element. */
-      				//html.removeChild(iframe);
+            /* Set iframe attributes. */
+            iframe.width        = 1;
+            iframe.height       = 1;
+            iframe.style.border = 'none';
+            iframe.onload       = function(){
+              /* Remove iframe element. */
+              //html.removeChild(iframe);
 
-      				/* Call user callback. */
-      				if(typeof(callbacks.success) != 'undefined'){
-      					callbacks.success();
-      				}
-      			};
+              /* Call user callback. */
+              if(typeof(callbacks.success) != 'undefined'){
+                callbacks.success();
+              }
+            };
 
-      			/* Append iframe. */
-      			html.appendChild(iframe);
+            /* Append iframe. */
+            html.appendChild(iframe);
 
-      			/* Get iframe document. */
-      			if(typeof(iframe.contentWindow) != 'undefined'){
-      				doc = iframe.contentWindow.document;
-      			}
-      			else if(typeof(iframe.contentDocument.document) != 'undefined'){
-      				doc = iframe.contentDocument.document.document;
-      			}
-      			else{
-      				doc = iframe.contentDocument.document;
-      			}
+            /* Get iframe document. */
+            if(typeof(iframe.contentWindow) != 'undefined'){
+              doc = iframe.contentWindow.document;
+            }
+            else if(typeof(iframe.contentDocument.document) != 'undefined'){
+              doc = iframe.contentDocument.document.document;
+            }
+            else{
+              doc = iframe.contentDocument.document;
+            }
 
-      			/* Open iframe document and write a form. */
-      			doc.open();
-      			doc.clear();
-      			doc.write('<form method="post" action="' + apiUrl + '" id="form">');
+            /* Open iframe document and write a form. */
+            doc.open();
+            doc.clear();
+            doc.write('<form method="post" action="' + apiUrl + '" id="form">');
 
-      			/* Write POST parameters as input fields. */
-      			for(var param in params){
-      				doc.write('<input type="text" name="' + param + '" value="' + params[param] + '">');
-      			}
+            /* Write POST parameters as input fields. */
+            for(var param in params){
+              doc.write('<input type="text" name="' + param + '" value="' + params[param] + '">');
+            }
 
-      			/* Write automatic form submission code. */
-      			doc.write('</form>');
-      			doc.write('<script type="application/x-javascript">');
-      			doc.write('document.getElementById("form").submit();');
-      			doc.write('</script>');
+            /* Write automatic form submission code. */
+            doc.write('</form>');
+            doc.write('<script type="application/x-javascript">');
+            doc.write('document.getElementById("form").submit();');
+            doc.write('</script>');
 
-      			/* Close iframe document. */
-      			doc.close();
-      		}
-      		/* Cross-domain GET request (JSONP). */
-      		else{
-      			/* Get JSONP callback name. */
-      			var jsonp = 'jsonp' + new Date().getTime() + jsonpCounter;
+            /* Close iframe document. */
+            doc.close();
+          }
+          /* Cross-domain GET request (JSONP). */
+          else{
+            /* Get JSONP callback name. */
+            var jsonp = 'jsonp' + new Date().getTime() + jsonpCounter;
 
-      			/* Update the unique JSONP callback counter */
-      			jsonpCounter += 1;
+            /* Update the unique JSONP callback counter */
+            jsonpCounter += 1;
 
-      			/* Calculate cache hash. */
-      			var hash = auth.getApiSignature(params);
+            /* Calculate cache hash. */
+            var hash = auth.getApiSignature(params);
 
-      			/* Check cache. */
-      			if(typeof(cache) != 'undefined' && cache.contains(hash) && !cache.isExpired(hash)){
-      				if(typeof(callbacks.success) != 'undefined'){
-      					callbacks.success(cache.load(hash));
-      				}
+            /* Check cache. */
+            if(typeof(cache) != 'undefined' && cache.contains(hash) && !cache.isExpired(hash)){
+              if(typeof(callbacks.success) != 'undefined'){
+                callbacks.success(cache.load(hash));
+              }
 
-      				return;
-      			}
+              return;
+            }
 
-      			/* Set callback name and response format. */
-      			params.callback = jsonp;
-      			params.format   = 'json';
+            /* Set callback name and response format. */
+            params.callback = jsonp;
+            params.format   = 'json';
 
-      			/* Create JSONP callback function. */
-      			window[jsonp] = function(data){
-      				/* Is a cache available?. */
-      				if(typeof(cache) != 'undefined'){
-      					var expiration = cache.getExpirationTime(params);
+            /* Create JSONP callback function. */
+            window[jsonp] = function(data){
+              /* Is a cache available?. */
+              if(typeof(cache) != 'undefined'){
+                var expiration = cache.getExpirationTime(params);
 
-      					if(expiration > 0){
-      						cache.store(hash, data, expiration);
-      					}
-      				}
+                if(expiration > 0){
+                  cache.store(hash, data, expiration);
+                }
+              }
 
-      				/* Call user callback. */
-      				if(typeof(data.error) != 'undefined'){
-      					if(typeof(callbacks.error) != 'undefined'){
-      						callbacks.error(data.error, data.message);
-      					}
-      				}
-      				else if(typeof(callbacks.success) != 'undefined'){
-      					callbacks.success(data);
-      				}
+              /* Call user callback. */
+              if(typeof(data.error) != 'undefined'){
+                if(typeof(callbacks.error) != 'undefined'){
+                  callbacks.error(data.error, data.message);
+                }
+              }
+              else if(typeof(callbacks.success) != 'undefined'){
+                callbacks.success(data);
+              }
 
-      				/* Garbage collect. */
-      				window[jsonp] = undefined;
+              /* Garbage collect. */
+              window[jsonp] = undefined;
 
-      				try{
-      					delete window[jsonp];
-      				}
-      				catch(e){
-      					/* Nothing. */
-      				}
+              try{
+                delete window[jsonp];
+              }
+              catch(e){
+                /* Nothing. */
+              }
 
-      				/* Remove script element. */
-      				if(head){
-      					head.removeChild(script);
-      				}
-      			};
+              /* Remove script element. */
+              if(head){
+                head.removeChild(script);
+              }
+            };
 
-      			/* Create script element to load JSON data. */
-      			var head   = document.getElementsByTagName("head")[0];
-      			var script = document.createElement("script");
+            /* Create script element to load JSON data. */
+            var head   = document.getElementsByTagName("head")[0];
+            var script = document.createElement("script");
 
-      			/* Build parameter string. */
-      			var array = [];
+            /* Build parameter string. */
+            var array = [];
 
-      			for(var param in params){
-      				array.push(encodeURIComponent(param) + "=" + encodeURIComponent(params[param]));
-      			}
+            for(var param in params){
+              array.push(encodeURIComponent(param) + "=" + encodeURIComponent(params[param]));
+            }
 
-      			/* Set script source. */
-      			script.src = apiUrl + '?' + array.join('&').replace(/%20/g, '+');
+            /* Set script source. */
+            script.src = apiUrl + '?' + array.join('&').replace(/%20/g, '+');
 
-      			/* Append script element. */
-      			head.appendChild(script);
-      		}
-      	};
+            /* Append script element. */
+            head.appendChild(script);
+          }
+        };
 
-      	/* Normal method call. */
-      	var call = function(method, params, callbacks, requestMethod){
-      		/* Set default values. */
-      		params        = params        || {};
-      		callbacks     = callbacks     || {};
-      		requestMethod = requestMethod || 'GET';
+        /* Normal method call. */
+        var call = function(method, params, callbacks, requestMethod){
+          /* Set default values. */
+          params        = params        || {};
+          callbacks     = callbacks     || {};
+          requestMethod = requestMethod || 'GET';
 
-      		/* Add parameters. */
-      		params.method  = method;
-      		params.api_key = apiKey;
+          /* Add parameters. */
+          params.method  = method;
+          params.api_key = apiKey;
 
-      		/* Call method. */
-      		internalCall(params, callbacks, requestMethod);
-      	};
+          /* Call method. */
+          internalCall(params, callbacks, requestMethod);
+        };
 
-      	/* Signed method call. */
-      	var signedCall = function(method, params, session, callbacks, requestMethod){
-      		/* Set default values. */
-      		params        = params        || {};
-      		callbacks     = callbacks     || {};
-      		requestMethod = requestMethod || 'GET';
+        /* Signed method call. */
+        var signedCall = function(method, params, session, callbacks, requestMethod){
+          /* Set default values. */
+          params        = params        || {};
+          callbacks     = callbacks     || {};
+          requestMethod = requestMethod || 'GET';
 
-      		/* Add parameters. */
-      		params.method  = method;
-      		params.api_key = apiKey;
+          /* Add parameters. */
+          params.method  = method;
+          params.api_key = apiKey;
 
-      		/* Add session key. */
-      		if(session && typeof(session.key) != 'undefined'){
-      			params.sk = session.key;
-      		}
+          /* Add session key. */
+          if(session && typeof(session.key) != 'undefined'){
+            params.sk = session.key;
+          }
 
-      		/* Get API signature. */
-      		params.api_sig = auth.getApiSignature(params);
+          /* Get API signature. */
+          params.api_sig = auth.getApiSignature(params);
 
-      		/* Call method. */
-      		internalCall(params, callbacks, requestMethod);
-      	};
+          /* Call method. */
+          internalCall(params, callbacks, requestMethod);
+        };
 
-      	/* Auth methods. */
-      	this.auth = {
-      		getMobileSession : function(params, callbacks){
-      			/* Set new params object with authToken. */
-      			params = {
-      				username  : params.username,
-      				authToken : md5(params.username + md5(params.password))
-      			};
+        /* Auth methods. */
+        this.auth = {
+          getMobileSession : function(params, callbacks){
+            /* Set new params object with authToken. */
+            params = {
+              username  : params.username,
+              authToken : md5(params.username + md5(params.password))
+            };
 
-      			signedCall('auth.getMobileSession', params, null, callbacks);
-      		},
+            signedCall('auth.getMobileSession', params, null, callbacks);
+          },
 
-      		getSession : function(params, callbacks){
-      			signedCall('auth.getSession', params, null, callbacks);
-      		},
+          getSession : function(params, callbacks){
+            signedCall('auth.getSession', params, null, callbacks);
+          },
 
-      		getToken : function(callbacks){
-      			signedCall('auth.getToken', null, null, callbacks);
-      		}
-      	};
+          getToken : function(callbacks){
+            signedCall('auth.getToken', null, null, callbacks);
+          }
+        };
 
-      	/* Track methods. */
-      	this.track = {
-      		addTags : function(params, session, callbacks){
-      			signedCall('track.addTags', params, session, callbacks, 'POST');
-      		},
+        /* Track methods. */
+        this.track = {
+          addTags : function(params, session, callbacks){
+            signedCall('track.addTags', params, session, callbacks, 'POST');
+          },
 
-      		getInfo : function(params, callbacks){
-      			call('track.getInfo', params, callbacks);
-      		},
+          getInfo : function(params, callbacks){
+            call('track.getInfo', params, callbacks);
+          },
 
-      		love : function(params, session, callbacks){
-      			signedCall('track.love', params, session, callbacks, 'POST');
-      		},
+          love : function(params, session, callbacks){
+            signedCall('track.love', params, session, callbacks, 'POST');
+          },
 
-      		scrobble : function(params, session, callbacks){
-      			/* Flatten an array of multiple tracks into an object with "array notation". */
-      			if(params.constructor.toString().indexOf("Array") != -1){
-      				var p = {};
+          scrobble : function(params, session, callbacks){
+            /* Flatten an array of multiple tracks into an object with "array notation". */
+            if(params.constructor.toString().indexOf("Array") != -1){
+              var p = {};
 
-      				for(i in params){
-      					for(j in params[i]){
-      						p[j + '[' + i + ']'] = params[i][j];
-      					}
-      				}
+              for(i in params){
+                for(j in params[i]){
+                  p[j + '[' + i + ']'] = params[i][j];
+                }
+              }
 
-      				params = p;
-      			}
+              params = p;
+            }
 
-      			signedCall('track.scrobble', params, session, callbacks, 'POST');
-      		},
+            signedCall('track.scrobble', params, session, callbacks, 'POST');
+          },
 
-      		unlove : function(params, session, callbacks){
-      			signedCall('track.unlove', params, session, callbacks, 'POST');
-      		},
+          unlove : function(params, session, callbacks){
+            signedCall('track.unlove', params, session, callbacks, 'POST');
+          },
 
-      		updateNowPlaying : function(params, session, callbacks){
-      			signedCall('track.updateNowPlaying', params, session, callbacks, 'POST');
-      		}
-      	};
+          updateNowPlaying : function(params, session, callbacks){
+            signedCall('track.updateNowPlaying', params, session, callbacks, 'POST');
+          }
+        };
 
-      	/* Private auth methods. */
-      	var auth = {
-      		getApiSignature : function(params){
-      			var keys   = [];
-      			var string = '';
+        /* Private auth methods. */
+        var auth = {
+          getApiSignature : function(params){
+            var keys   = [];
+            var string = '';
 
-      			for(var key in params){
-      				keys.push(key);
-      			}
+            for(var key in params){
+              keys.push(key);
+            }
 
-      			keys.sort();
+            keys.sort();
 
-      			for(var index in keys){
-      				var key = keys[index];
+            for(var index in keys){
+              var key = keys[index];
 
-      				string += key + params[key];
-      			}
+              string += key + params[key];
+            }
 
-      			string += apiSecret;
+            string += apiSecret;
 
-      			/* Needs lastfm.api.md5.js. */
-      			return md5(string);
-      		}
-      	};
+            /* Needs lastfm.api.md5.js. */
+            return md5(string);
+          }
+        };
       }
 
       exports.lastfm = LastFM;
@@ -567,6 +563,9 @@
 
     /* make global md5 method for Last.FM module. */
     md5 = this.md5;
+
+    var apikey = ["c31","b77","d81be","ee09","2654","381a","05e7","5174f"].join('')
+      , apisecret = ["10c","e7e","418","f6b4","bde","a79f8","402d","75f0","08a"].join('');
 
     /* Start of our Scrobbling Script stuff. */
 
