@@ -1,12 +1,32 @@
+/* Scrobble my Jam
+ *
+ * Bookmarklet JavaScript for scrobbling http://thisismyjam.com to
+ * Last.FM. If it doesn't scrobble, it doesn't count.
+ * 
+ * (c) 2011 Ben Ward (@benward, http://benward.me)
+ *
+ * BSD License
+ *
+ * Get an API key from http://last.fm/api
+ *
+ */
 (function () {
 
-  var settings = { username: "", password: "", logging: false };
+  var settings = {
+        username: ""
+      , password: ""
+      , logging: false
+      , key: ""
+      , secret: ""
+      };
 
   !function(settings) {
 
     var username = settings.username
       , password = settings.password
       , logging = settings.logging 
+      , apikey = settings.key
+      , apisecret = settings.secret
       , lastPlaying
       , lastScrobbled
       , lastPosition
@@ -648,9 +668,6 @@
         log("No playback");
       }
     }
-
-    var apikey = ""
-      , apisecret = "";
   
     init();
 
